@@ -39,10 +39,21 @@ func (s *SpyCountdownOperations) Write(p []byte) (n int, err error) {
 	return
 }
 
-type DefaultSleeper struct{}
+type ConfigurableSleeper struct {
+	duration time.Duration
+	sleep    func(time.Duration)
+}
 
-func (d *DefaultSleeper) Sleep() {
-	time.Sleep(1 * time.Second)
+func (c *ConfigurableSleeper) Sleep() {
+	c.sleep(c.duration)
+}
+
+type SpyTime struct {
+	durationSlept time.Duration
+}
+
+func (s *SpyTime) SetDurationSlept(duration time.Duration) {
+	s.durationSlept = duration
 }
 
 func Countdown(out io.Writer, sleeper Sleeper) {
@@ -55,5 +66,6 @@ func Countdown(out io.Writer, sleeper Sleeper) {
 }
 
 func main() {
-	Countdown(os.Stdout, &DefaultSleeper{})
+	sleeper := &ConfigurableSleeper{1 * time.Second, time.Sleep}
+	Countdown(os.Stdout, sleeper)
 }
